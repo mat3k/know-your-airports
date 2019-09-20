@@ -252,9 +252,9 @@ function pickTargetAirport() {
 }
 
 function distanceToScore(distance, timer) {
-  divisor = parseInt(distance / 100);
-  if (divisor == 0)
-    return 100;
+  divisor = parseInt(distance / 10);
+  if (divisor >100)
+    return 0;
   return parseInt(100 - divisor);
 
   if (distance < 100) return 100;
