@@ -29,20 +29,15 @@
   top: 10px;
   z-index: 999;
   margin-left: -400px;
-  font-size:25px;
+  font-size:35px;
   padding-left:10px;
   padding-right:10px
 }
 
 #score {
-  height: 50px;
-  width: 200px;
-  background-color: rgba(255, 255, 255, 0.5);
   position: fixed;
-  width: 200px;
-  bottom: 10px;
-  right: 50px;
-  z-index: 999;
+  z-index: 99999;
+  font-size:50px;
 }
 
 .leaflet-container.crosshair-cursor-enabled {
@@ -54,10 +49,43 @@
   font-size: 45px;
   top: 10;
   left: 10;
-  width: 100px;
-  height: 50px;
   z-index: 999;
   background-color: rgba(255, 255, 255, 0.5);
+  font-family: myFirstFont;
+}
+
+#score {
+  -webkit-animation-duration: 0.7s;animation-duration: 0.7s;
+  -webkit-animation-fill-mode: both;animation-fill-mode: both;
+}
+
+#gameOver {
+  top: 300px;
+  left: 550px;
+  position: fixed;
+  z-index: 999;
+  font-size: 100px;
+  font-family: myFirstFont;
+}
+
+@font-face {
+  font-family: myFirstFont;
+  src: url(Skyfont-NonCommercial.otf);
+}
+
+@-webkit-keyframes fadeOut {
+  0% {opacity: 1;}
+  100% {opacity: 0;}
+}
+
+@keyframes fadeOut {
+  0% {opacity: 1;}
+  100% {opacity: 0;}
+}
+
+.fadeOut {
+  -webkit-animation-name: fadeOut;
+  animation-name: fadeOut;
 }
 
 </style>
@@ -65,7 +93,7 @@
 <body>
   <div id="timer">5.00</div>
   <div id="target-aiport">Target</div>
-  <div id="score">Score: 0</div>
+  <!-- <div id="score" class="fadeOut">Score: 0</div> -->
   <div id="mapDiv" ></div>
 </body>
 
@@ -184,22 +212,28 @@ var markers = [];
 
 startRoundCounter();
 
-function counter_update() {
+function counterUpdate() {
   if (counter <= 0)
   {
     clearInterval(counter_pointer);
+    setScore(0, null)
+    nextRound();
     return;
   }
   counter = counter - 10;
 
-  document.getElementById("timer").innerHTML=counter / 1000;
+  document.getElementById("timer").innerHTML=(counter / 1000).toFixed(2);
 }
 
 function onMapClick(e) {
   if (gameOver()) {
     clearInterval(counter_pointer);
-    console.log('Game over');
-    console.log(score);
+
+    var div = document.createElement('div');
+    div.textContent = 'SCORE ' + score;
+    div.setAttribute('id', 'gameOver');
+
+    document.body.appendChild(div);
     return;
   }
 
@@ -215,9 +249,12 @@ function onMapClick(e) {
   // distance measure
   var distance = meastureDistance({"lon": lon, "lat": lat}, targetAirport);
   var points = distanceToScore(distance, rounder_counter);
-  setScore(points)
-
+  setScore(points, e)
   nextRound();
+}
+
+function startGame()  {
+
 }
 
 function meastureDistance(position, target) {
@@ -264,9 +301,26 @@ function distanceToScore(distance, timer) {
   return 20;
 }
 
-function setScore(points) {
+function setScore(points, e) {
   score = score + points;
-  document.getElementById("score").innerHTML = "Score: " + score;
+
+  if (e) {
+    var div = document.createElement('div');
+    div.textContent = points;
+    div.setAttribute('class', 'fadeOut');
+    div.setAttribute('id', 'score');
+    div.setAttribute('style', 'left: ' + (e.containerPoint.x + 20) + 'px; top: ' + (e.containerPoint.y - 40) + 'px;');
+
+    document.body.appendChild(div);
+
+    setTimeout(
+    function() {
+      var element = document.getElementById('score');
+      element.parentNode.removeChild(element);
+    },
+    600
+  );
+  }
 }
 pickTargetAirport();
 
@@ -286,7 +340,7 @@ function nextRound() {
 
 function startRoundCounter(){
   counter = 5000;
-  counter_pointer = setInterval(counter_update, 10);
+  counter_pointer = setInterval(counterUpdate, 10);
 }
 
 function showCorrectTarget() {
@@ -305,7 +359,7 @@ function showCorrectTarget() {
 }
 
 var osmUrl='https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
-var osm = new L.TileLayer(osmUrl, {minZoom:2, maxZoom:19});
+var osm = new L.TileLayer(osmUrl, {minZoom:2.0, maxZoom:19});
 
 var map = new L.Map('mapDiv', {
   doubleClickZoom:false,
