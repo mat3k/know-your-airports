@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <title>Pointer</title>
+  <meta charset='utf-8' />
+  <meta name="viewport" content="width=device-width, height=device-height, user-scalable=no">
+  <link rel="stylesheet" href="https://npmcdn.com/leaflet@1.0.0-rc.2/dist/leaflet.css" />
+  <script src="https://npmcdn.com/leaflet@1.0.0-rc.2/dist/leaflet.js"></script>
+</head>
+
+<style>
+
+#mapDiv {
+  position: absolute;
+  top:0;
+  bottom:0;
+  right:0;
+  left:0;
+  overflow:hidden;
+  background-color:grey;
+}
+
+#target-aiport {
+  height: 50px;
+  width: 200px;
+  background-color: rgba(255, 255, 255, 0.5);
+  position: fixed;
+  width: 50%;
+  bottom: 10px;
+  z-index: 999;
+}
+
+#score {
+  height: 50px;
+  width: 200px;
+  background-color: rgba(255, 255, 255, 0.5);
+  position: fixed;
+  width: 200px;
+  bottom: 10px;
+  right: 50px;
+  z-index: 999;
+}
+
+.leaflet-container.crosshair-cursor-enabled {
+  cursor:crosshair;
+}
+
+#timer {
+  position: fixed;
+  font-size: 45px;
+  top: 10;
+  left: 10;
+  width: 100px;
+  height: 50px;
+  z-index: 999;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+</style>
+
+<body>
+  <div id="timer">5.00</div>
+  <div id="target-aiport">Target</div>
+  <div id="score">Score: 0</div>
+  <div id="mapDiv" ></div>
+</body>
+
+<script>
+
+var airports = [
+{"name":"Chicago O'Hare International Airport","lat":41.9786,"lon":-87.9048,"iata_code":"ORD"},
+{"name":"Hartsfield Jackson Atlanta International Airport","lat":33.6367,"lon":-84.428101,"iata_code":"ATL"},
+{"name":"Dallas Fort Worth International Airport","lat":32.896801,"lon":-97.038002,"iata_code":"DFW"},
+{"name":"Denver International Airport","lat":39.861698150635,"lon":-104.672996521,"iata_code":"DEN"},
+{"name":"Los Angeles International Airport","lat":33.94250107,"lon":-118.4079971,"iata_code":"LAX"},
+{"name":"Beijing Capital International Airport","lat":40.080101013183594,"lon":116.58499908447266,"iata_code":"PEK"},
+{"name":"Charlotte Douglas International Airport","lat":35.2140007019043,"lon":-80.94309997558594,"iata_code":"CLT"},
+{"name":"Amsterdam Airport Schiphol","lat":52.308601,"lon":4.76389,"iata_code":"AMS"},
+{"name":"Frankfurt am Main Airport","lat":50.033333,"lon":8.570556,"iata_code":"FRA"},
+{"name":"Charles de Gaulle International Airport","lat":49.012798,"lon":2.55,"iata_code":"CDG"},
+{"name":"Indira Gandhi International Airport","lat":28.5665,"lon":77.103104,"iata_code":"DEL"},
+{"name":"London Heathrow Airport","lat":51.4706,"lon":-0.461941,"iata_code":"LHR"},
+{"name":"Shanghai Pudong International Airport","lat":31.143400192260742,"lon":121.80500030517578,"iata_code":"PVG"},
+{"name":"Soekarno-Hatta International Airport","lat":-6.1255698204,"lon":106.65599823,"iata_code":"CGK"},
+{"name":"Tokyo Haneda International Airport","lat":35.552299,"lon":139.779999,"iata_code":"HND"},
+{"name":"Guangzhou Baiyun International Airport","lat":23.39240074157715,"lon":113.29900360107422,"iata_code":"CAN"},
+{"name":"George Bush Intercontinental Houston Airport","lat":29.984399795532227,"lon":-95.34140014648438,"iata_code":"IAH"},
+{"name":"Kuala Lumpur International Airport","lat":2.745579957962,"lon":101.70999908447,"iata_code":"KUL"},
+{"name":"Seattle Tacoma International Airport","lat":47.449001,"lon":-122.308998,"iata_code":"SEA"},
+{"name":"Munich Airport","lat":48.353802,"lon":11.7861,"iata_code":"MUC"},
+{"name":"Lester B. Pearson International Airport","lat":43.6772003174,"lon":-79.63059997559999,"iata_code":"YYZ"},
+{"name":"John F Kennedy International Airport","lat":40.63980103,"lon":-73.77890015,"iata_code":"JFK"},
+{"name":"General Edward Lawrence Logan International Airport","lat":42.36429977,"lon":-71.00520325,"iata_code":"BOS"},
+{"name":"Adolfo Suárez Madrid–Barajas Airport","lat":40.471926,"lon":-3.56264,"iata_code":"MAD"},
+{"name":"Newark Liberty International Airport","lat":40.692501068115234,"lon":-74.168701171875,"iata_code":"EWR"},
+{"name":"La Guardia Airport","lat":40.77719879,"lon":-73.87259674,"iata_code":"LGA"},
+{"name":"Licenciado Benito Juarez International Airport","lat":19.4363,"lon":-99.072098,"iata_code":"MEX"},
+{"name":"Detroit Metropolitan Wayne County Airport","lat":42.212398529052734,"lon":-83.35340118408203,"iata_code":"DTW"},
+{"name":"Istanbul Airport","lat":41.275278,"lon":28.751944,"iata_code":"IST"},
+{"name":"Sheremetyevo International Airport","lat":55.972599,"lon":37.4146,"iata_code":"SVO"},
+{"name":"Singapore Changi Airport","lat":1.35019,"lon":103.994003,"iata_code":"SIN"},
+{"name":"McCarran International Airport","lat":36.08010101,"lon":-115.1520004,"iata_code":"LAS"},
+{"name":"Philadelphia International Airport","lat":39.87189865112305,"lon":-75.24109649658203,"iata_code":"PHL"},
+{"name":"Suvarnabhumi Airport","lat":13.681099891662598,"lon":100.74700164794922,"iata_code":"BKK"},
+{"name":"Barcelona International Airport","lat":41.2971,"lon":2.07846,"iata_code":"BCN"},
+{"name":"Xi'an Xianyang International Airport","lat":34.447102,"lon":108.751999,"iata_code":"XIY"},
+{"name":"Dubai International Airport","lat":25.2527999878,"lon":55.3643989563,"iata_code":"DXB"},
+{"name":"Phoenix Sky Harbor International Airport","lat":33.43429946899414,"lon":-112.01200103759766,"iata_code":"PHX"},
+{"name":"San Francisco International Airport","lat":37.61899948120117,"lon":-122.375,"iata_code":"SFO"},
+{"name":"Incheon International Airport","lat":37.46910095214844,"lon":126.45099639892578,"iata_code":"ICN"},
+{"name":"Kunming Changshui International Airport","lat":25.1019444,"lon":102.9291667,"iata_code":"KMG"},
+{"name":"Minneapolis-St Paul International/Wold-Chamberlain Airport","lat":44.882,"lon":-93.221802,"iata_code":"MSP"},
+{"name":"Chengdu Shuangliu International Airport","lat":30.578500747680664,"lon":103.9469985961914,"iata_code":"CTU"},
+{"name":"Shenzhen Bao'an International Airport","lat":22.639299392700195,"lon":113.81099700927734,"iata_code":"SZX"},
+{"name":"Sydney Kingsford Smith International Airport","lat":-33.94609832763672,"lon":151.177001953125,"iata_code":"SYD"},
+{"name":"Hong Kong International Airport","lat":22.308901,"lon":113.915001,"iata_code":"HKG"},
+{"name":"Chhatrapati Shivaji International Airport","lat":19.0886993408,"lon":72.8678970337,"iata_code":"BOM"},
+{"name":"Leonardo da Vinci–Fiumicino Airport","lat":41.8002778,"lon":12.2388889,"iata_code":"FCO"},
+{"name":"Chongqing Jiangbei International Airport","lat":29.719200134277344,"lon":106.64199829101562,"iata_code":"CKG"},
+{"name":"Ronald Reagan Washington National Airport","lat":38.8521,"lon":-77.037697,"iata_code":"DCA"},
+{"name":"Miami International Airport","lat":25.79319953918457,"lon":-80.29060363769531,"iata_code":"MIA"},
+{"name":"El Dorado International Airport","lat":4.70159,"lon":-74.1469,"iata_code":"BOG"},
+{"name":"London Gatwick Airport","lat":51.148102,"lon":-0.190278,"iata_code":"LGW"},
+{"name":"Ninoy Aquino International Airport","lat":14.5086,"lon":121.019997,"iata_code":"MNL"},
+{"name":"Shanghai Hongqiao International Airport","lat":31.197900772094727,"lon":121.33599853515625,"iata_code":"SHA"},
+{"name":"Orlando International Airport","lat":28.429399490356445,"lon":-81.30899810791016,"iata_code":"MCO"},
+{"name":"Hangzhou Xiaoshan International Airport","lat":30.22949981689453,"lon":120.43399810791016,"iata_code":"HGH"},
+{"name":"Hamad International Airport","lat":25.273056,"lon":51.608056,"iata_code":"DOH"},
+{"name":"Vienna International Airport","lat":48.110298156738,"lon":16.569700241089,"iata_code":"VIE"},
+{"name":"Malpensa International Airport","lat":45.6306,"lon":8.72811,"iata_code":"MXP"},
+{"name":"Don Mueang International Airport","lat":13.9125995636,"lon":100.607002258,"iata_code":"DMK"},
+{"name":"Palma De Mallorca Airport","lat":39.551700592,"lon":2.73881006241,"iata_code":"PMI"},
+{"name":"Dublin Airport","lat":53.421299,"lon":-6.27007,"iata_code":"DUB"},
+{"name":"Melbourne International Airport","lat":-37.673302,"lon":144.843002,"iata_code":"MEL"},
+{"name":"Copenhagen Kastrup Airport","lat":55.617900848389,"lon":12.656000137329,"iata_code":"CPH"},
+{"name":"Zürich Airport","lat":47.464699,"lon":8.54917,"iata_code":"ZRH"},
+{"name":"Salt Lake City International Airport","lat":40.78839874267578,"lon":-111.97799682617188,"iata_code":"SLC"},
+{"name":"Narita International Airport","lat":35.7647018433,"lon":140.386001587,"iata_code":"NRT"},
+{"name":"Tan Son Nhat International Airport","lat":10.8187999725,"lon":106.652000427,"iata_code":"SGN"},
+{"name":"Vancouver International Airport","lat":49.193901062,"lon":-123.183998108,"iata_code":"YVR"},
+{"name":"Guarulhos - Governador André Franco Montoro International Airport","lat":-23.435556411743164,"lon":-46.47305679321289,"iata_code":"GRU"},
+{"name":"Taiwan Taoyuan International Airport","lat":25.0777,"lon":121.233002,"iata_code":"TPE"},
+{"name":"Fort Lauderdale Hollywood International Airport","lat":26.072599,"lon":-80.152702,"iata_code":"FLL"},
+{"name":"Washington Dulles International Airport","lat":38.94449997,"lon":-77.45580292,"iata_code":"IAD"},
+{"name":"Eleftherios Venizelos International Airport","lat":37.9364013672,"lon":23.9444999695,"iata_code":"ATH"},
+{"name":"Kempegowda International Airport","lat":13.1979,"lon":77.706299,"iata_code":"BLR"},
+{"name":"Baltimore/Washington International Thurgood Marshall Airport","lat":39.1754,"lon":-76.668297,"iata_code":"BWI"},
+{"name":"Düsseldorf Airport","lat":51.289501,"lon":6.76678,"iata_code":"DUS"},
+{"name":"Nanjing Lukou Airport","lat":31.742000579833984,"lon":118.86199951171875,"iata_code":"NKG"},
+{"name":"Sabiha Gökçen International Airport","lat":40.898601532,"lon":29.3092002869,"iata_code":"SAW"},
+{"name":"Zhengzhou Xinzheng International Airport","lat":34.519699096699995,"lon":113.841003418,"iata_code":"CGO"},
+{"name":"Domodedovo International Airport","lat":55.40879821777344,"lon":37.90629959106445,"iata_code":"DME"},
+{"name":"Brussels Airport","lat":50.901401519800004,"lon":4.48443984985,"iata_code":"BRU"},
+{"name":"Oslo Lufthavn","lat":60.121,"lon":11.0502,"iata_code":"OSL"},
+{"name":"Paris-Orly Airport","lat":48.7233333,"lon":2.3794444,"iata_code":"ORY"},
+{"name":"Changsha Huanghua International Airport","lat":28.189199447599997,"lon":113.220001221,"iata_code":"CSX"},
+{"name":"Humberto Delgado Airport (Lisbon Portela Airport)","lat":38.7813,"lon":-9.13592,"iata_code":"LIS"},
+{"name":"Montreal / Pierre Elliott Trudeau International Airport","lat":45.4706001282,"lon":-73.7407989502,"iata_code":"YUL"},
+{"name":"Manchester Airport","lat":53.35369873046875,"lon":-2.2749500274658203,"iata_code":"MAN"},
+{"name":"OR Tambo International Airport","lat":-26.1392,"lon":28.246,"iata_code":"JNB"},
+{"name":"San Diego International Airport","lat":32.7336006165,"lon":-117.190002441,"iata_code":"SAN"},
+{"name":"Stockholm-Arlanda Airport","lat":59.651901245117,"lon":17.918600082397,"iata_code":"ARN"},
+{"name":"Wuhan Tianhe International Airport","lat":30.7838,"lon":114.208,"iata_code":"WUH"},
+{"name":"Brisbane International Airport","lat":-27.384199142456055,"lon":153.11700439453125,"iata_code":"BNE"},
+{"name":"Xiamen Gaoqi International Airport","lat":24.54400062561035,"lon":118.12799835205078,"iata_code":"XMN"},
+{"name":"Ürümqi Diwopu International Airport","lat":43.907100677490234,"lon":87.47419738769531,"iata_code":"URC"},
+{"name":"Berlin-Tegel Airport","lat":52.5597,"lon":13.2877,"iata_code":"TXL"},
+{"name":"Liuting Airport","lat":36.2661018372,"lon":120.374000549,"iata_code":"TAO"},
+{"name":"Kansai International Airport","lat":34.42729949951172,"lon":135.24400329589844,"iata_code":"KIX"},
+{"name":"Rajiv Gandhi International Airport","lat":17.2313175201,"lon":78.4298553467,"iata_code":"HYD"},
+]
+
+var targetAirport = airports[0];
+
+var score = 0;
+var questions = 0;
+var counter = 5000;
+var counter_pointer =  setInterval(counter_update, 10);
+
+function counter_update() {
+  if (counter <= 0)
+  {
+    clearInterval(counter_pointer);
+    return;
+  }
+  counter = counter - 10;
+
+
+  // document.getElementById("timer").innerHTML=count /100+ " secs";
+  document.getElementById("timer").innerHTML=counter;
+}
+
+function onMapClick(e) {
+  if (gameFinished()) {
+    console.log('Game over')
+    return;
+  }
+
+  questions++;
+  var lat  = e.latlng.lat.toFixed(5);
+  var lon  = e.latlng.lng.toFixed(5);
+
+  // distance measure
+  var distance = meastureDistance({"lon": lon, "lat": lat}, targetAirport);
+  var points = distanceToScore(distance);
+  setScore(points)
+
+
+
+  pickTargetAirport();
+}
+
+function meastureDistance(position, target) {
+  return rawDistance(position['lat'], position['lon'], target['lat'], target['lon'])
+}
+
+function rawDistance(lat1, lon1, lat2, lon2, unit) {
+	if ((lat1 == lat2) && (lon1 == lon2)) {
+		return 0;
+	}
+	else {
+		var radlat1 = Math.PI * lat1/180;
+		var radlat2 = Math.PI * lat2/180;
+		var theta = lon1-lon2;
+		var radtheta = Math.PI * theta/180;
+		var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
+		if (dist > 1) {
+			dist = 1;
+		}
+		dist = Math.acos(dist);
+		dist = dist * 180/Math.PI;
+		dist = dist * 60 * 1.1515;
+		if (unit=="K") { dist = dist * 1.609344 }
+		if (unit=="N") { dist = dist * 0.8684 }
+		return dist;
+	}
+}
+
+function pickTargetAirport() {
+  targetAirport = airports[Math.floor(Math.random() * airports.length)];
+  document.getElementById("target-aiport").innerHTML = targetAirport['name'];
+}
+
+function distanceToScore(distance) {
+  if (distance < 100) return 100;
+  if (distance >= 100 && distance < 300) return 80;
+  if (distance >= 300 && distance < 500) return 60;
+  if (distance >= 500 && distance < 1000) return 40;
+  return 20;
+}
+
+function setScore(points) {
+  score = score + points;
+  document.getElementById("score").innerHTML = "Score: " + score;
+}
+pickTargetAirport();
+
+function gameFinished() {
+  return questions == 10;
+}
+
+var osmUrl='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+var osm = new L.TileLayer(osmUrl, {minZoom:2, maxZoom:19});
+
+// var googleStreets = new L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{minZoom:1, maxZoom:19, subdomains:['mt0','mt1','mt2','mt3']});
+
+// var googleSat = new L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{minZoom:1, maxZoom: 21,subdomains:['mt0','mt1','mt2','mt3']});
+
+var map = new L.Map('mapDiv', {
+  doubleClickZoom:false,
+  zoomControl:false,
+  maxBounds:([[90,-270],[-90,270]])
+});
+
+// L.control.layers({"OSM (Mapnik)": osm, "Google Street": googleStreets, "Google Earth": googleSat}).addTo(map);
+
+map.addLayer(osm);
+var map_set = "osm";
+map.fitBounds([[0,-180],[0,180]]);
+
+map.on('click', onMapClick);
+
+L.DomUtil.addClass(map._container,'crosshair-cursor-enabled');
+</script>
+
+</html>
