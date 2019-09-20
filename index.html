@@ -175,9 +175,12 @@ var airports = [
 var targetAirport = airports[0];
 
 var score = 0;
-var questions = 0;
-var counter = 5000;
-var counter_pointer =  setInterval(counter_update, 10);
+var round = 0;
+var counter = 0;
+var counter_pointer = null;
+var markers = [];
+
+startRoundCounter();
 
 function counter_update() {
   if (counter <= 0)
@@ -187,29 +190,32 @@ function counter_update() {
   }
   counter = counter - 10;
 
-
-  // document.getElementById("timer").innerHTML=count /100+ " secs";
-  document.getElementById("timer").innerHTML=counter;
+  document.getElementById("timer").innerHTML=counter / 1000;
 }
 
 function onMapClick(e) {
-  if (gameFinished()) {
-    console.log('Game over')
+  if (gameOver()) {
+    clearInterval(counter_pointer);
+    console.log('Game over');
+    console.log(score);
     return;
   }
 
-  questions++;
+  showCorrectTarget()
+
+  // stop round counter
+  var rounder_counter = counter
+  clearInterval(counter_pointer);
+
   var lat  = e.latlng.lat.toFixed(5);
   var lon  = e.latlng.lng.toFixed(5);
 
   // distance measure
   var distance = meastureDistance({"lon": lon, "lat": lat}, targetAirport);
-  var points = distanceToScore(distance);
+  var points = distanceToScore(distance, rounder_counter);
   setScore(points)
 
-
-
-  pickTargetAirport();
+  nextRound();
 }
 
 function meastureDistance(position, target) {
@@ -243,9 +249,12 @@ function pickTargetAirport() {
   document.getElementById("target-aiport").innerHTML = targetAirport['name'];
 }
 
-function distanceToScore(distance) {
-  divisor = distance / 100;
-  return 100 / divisor;
+function distanceToScore(distance, timer) {
+  divisor = parseInt(distance / 100);
+  if (divisor == 0)
+    return 100;
+  return parseInt(100 / divisor);
+
   if (distance < 100) return 100;
   if (distance >= 100 && distance < 300) return 80;
   if (distance >= 300 && distance < 500) return 60;
@@ -259,8 +268,38 @@ function setScore(points) {
 }
 pickTargetAirport();
 
-function gameFinished() {
-  return questions == 10;
+function gameOver() {
+  return round == 10;
+}
+
+function displaySummary(){
+
+}
+
+function nextRound() {
+  round++;
+  pickTargetAirport();
+  startRoundCounter();
+}
+
+function startRoundCounter(){
+  counter = 5000;
+  counter_pointer = setInterval(counter_update, 10);
+}
+
+function showCorrectTarget() {
+  var greenIcon = L.icon({
+    iconUrl: 'favicon.ico',
+    iconSize:     [16, 16], // size of the icon
+  });
+  var marker = L.marker([targetAirport.lat, targetAirport.lon], {icon: greenIcon}).addTo(map);
+
+  setTimeout(
+    function() {
+      map.removeLayer(marker);
+    },
+    400
+  );
 }
 
 var osmUrl='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
