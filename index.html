@@ -244,6 +244,8 @@ function pickTargetAirport() {
 }
 
 function distanceToScore(distance) {
+  divisor = distance / 100;
+  return 100 / divisor;
   if (distance < 100) return 100;
   if (distance >= 100 && distance < 300) return 80;
   if (distance >= 300 && distance < 500) return 60;
