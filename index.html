@@ -20,6 +20,8 @@
   left:0;
   overflow:hidden;
   background-color:grey;
+  opacity: 0.85;
+  z-index: 99;
 }
 
 #target-aiport {
@@ -50,7 +52,6 @@
   top: 10;
   left: 10;
   z-index: 999;
-  background-color: rgba(255, 255, 255, 0.5);
   font-family: myFirstFont;
 }
 
@@ -86,8 +87,24 @@
 .fadeOut {
   -webkit-animation-name: fadeOut;
   animation-name: fadeOut;
+  width: 200px;
+  bottom: 10px;
+  z-index: 999;
 }
 
+#logo {
+height: auto;
+background-position: center;
+background-repeat: no-repeat;
+background-size: cover;
+}
+
+#logo, img{
+position: fixed;
+  top: 20%;
+    width:100%;
+    height: 60%;
+}
 </style>
 
 <body>
@@ -95,6 +112,12 @@
   <div id="target-aiport">Target</div>
   <!-- <div id="score" class="fadeOut">Score: 0</div> -->
   <div id="mapDiv" ></div>
+
+<div id="logo">
+    <img src="./dupa.png"/>
+</div>
+
+
 </body>
 
 <script>
