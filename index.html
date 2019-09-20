@@ -23,13 +23,15 @@
 }
 
 #target-aiport {
-  height: 50px;
-  width: 200px;
+  left: 50%;
   background-color: rgba(255, 255, 255, 0.5);
   position: fixed;
-  width: 50%;
-  bottom: 10px;
+  top: 10px;
   z-index: 999;
+  margin-left: -400px;
+  font-size:25px;
+  padding-left:10px;
+  padding-right:10px
 }
 
 #score {
@@ -305,21 +307,20 @@ function showCorrectTarget() {
 var osmUrl='https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
 var osm = new L.TileLayer(osmUrl, {minZoom:2, maxZoom:19});
 
-// var googleStreets = new L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{minZoom:1, maxZoom:19, subdomains:['mt0','mt1','mt2','mt3']});
-
-// var googleSat = new L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{minZoom:1, maxZoom: 21,subdomains:['mt0','mt1','mt2','mt3']});
-
 var map = new L.Map('mapDiv', {
   doubleClickZoom:false,
   zoomControl:false,
   maxBounds:([[90,-270],[-90,270]])
 });
 
-// L.control.layers({"OSM (Mapnik)": osm, "Google Street": googleStreets, "Google Earth": googleSat}).addTo(map);
 
 map.addLayer(osm);
 var map_set = "osm";
+
+
+
 map.fitBounds([[0,-180],[0,180]]);
+map.panTo(new L.LatLng(0.737, -30.923));
 
 map.on('click', onMapClick);
 
