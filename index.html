@@ -253,7 +253,7 @@ function distanceToScore(distance, timer) {
   divisor = parseInt(distance / 100);
   if (divisor == 0)
     return 100;
-  return parseInt(100 / divisor);
+  return parseInt(100 - divisor);
 
   if (distance < 100) return 100;
   if (distance >= 100 && distance < 300) return 80;
